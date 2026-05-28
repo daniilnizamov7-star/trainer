@@ -1,1 +1,1201 @@
-1
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0d0d">
+<title>Тренажёр фаундера</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;700&family=Golos+Text:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0d;
+  --bg2: #161616;
+  --bg3: #1e1e1e;
+  --bg4: #242424;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --tx: #f0ede8;
+  --tx2: #a09a92;
+  --tx3: #6b6560;
+  --acc: #e8d5a3;
+  --acc2: #c4a96e;
+  --acc3: #8b6f3e;
+  --blue: #5b9bd5;
+  --blue2: #3d7ab8;
+  --green: #5dba8a;
+  --red: #d96b5a;
+  --purple: #9b7fd4;
+  --font-h: 'Unbounded', sans-serif;
+  --font: 'Golos Text', sans-serif;
+  --r: 14px;
+  --r2: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--bg); color: var(--tx); font-family: var(--font); overflow: hidden; }
+
+/* APP SHELL */
+#app { display: flex; flex-direction: column; height: 100vh; max-width: 430px; margin: 0 auto; position: relative; }
+#screen { flex: 1; overflow-y: auto; overflow-x: hidden; scroll-behavior: smooth; }
+#screen::-webkit-scrollbar { display: none; }
+
+/* UPDATE BANNER */
+#update-banner { display: none; position: fixed; top: 0; left: 50%; transform: translateX(-50%); background: var(--acc); color: #1a1200; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: 0 0 var(--r2) var(--r2); z-index: 999; cursor: pointer; max-width: 430px; width: 100%; text-align: center; }
+
+/* NAV */
+#nav { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; }
+.nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 4px 14px; cursor: pointer; border: none; background: none; color: var(--tx3); font-family: var(--font); font-size: 10px; transition: color 0.2s; }
+.nav-btn svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.nav-btn.active { color: var(--acc); }
+.nav-btn span { font-family: var(--font); }
+
+/* HOME SCREEN */
+.home-header { padding: 48px 20px 24px; }
+.home-brand { font-family: var(--font-h); font-size: 11px; color: var(--acc2); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 12px; }
+.home-title { font-family: var(--font-h); font-size: 22px; font-weight: 700; color: var(--tx); line-height: 1.25; }
+.home-title span { color: var(--acc); }
+.home-sub { font-size: 13px; color: var(--tx2); margin-top: 10px; line-height: 1.6; }
+
+.streak-row { margin: 0 20px 24px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; display: flex; align-items: center; gap: 16px; }
+.streak-icon { font-size: 28px; }
+.streak-val { font-family: var(--font-h); font-size: 24px; font-weight: 700; color: var(--acc); }
+.streak-label { font-size: 11px; color: var(--tx3); margin-top: 2px; }
+.streak-bar { flex: 1; }
+.xp-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--tx3); margin-bottom: 6px; }
+.xp-track { height: 4px; background: var(--bg4); border-radius: 2px; overflow: hidden; }
+.xp-fill { height: 100%; background: linear-gradient(90deg, var(--acc3), var(--acc)); border-radius: 2px; transition: width 0.5s ease; }
+
+.section-title { font-size: 11px; font-weight: 600; color: var(--tx3); letter-spacing: 0.12em; text-transform: uppercase; padding: 0 20px 12px; }
+
+.modules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 24px; }
+.module-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; cursor: pointer; transition: border-color 0.2s, background 0.2s; position: relative; overflow: hidden; }
+.module-card:active { background: var(--bg4); }
+.module-card.locked { opacity: 0.4; cursor: default; }
+.module-tag { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; padding: 3px 8px; border-radius: 20px; display: inline-block; }
+.tag-biz { background: rgba(155,127,212,0.15); color: var(--purple); }
+.tag-tech { background: rgba(91,155,213,0.15); color: var(--blue); }
+.module-icon { font-size: 24px; margin-bottom: 8px; }
+.module-name { font-size: 13px; font-weight: 600; color: var(--tx); line-height: 1.3; margin-bottom: 4px; }
+.module-desc { font-size: 11px; color: var(--tx3); line-height: 1.5; }
+.module-badge { position: absolute; top: 12px; right: 12px; font-size: 10px; background: var(--green); color: #003320; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+.module-badge.soon { background: var(--bg4); color: var(--tx3); }
+
+/* PRACTICE SCREEN */
+.prac-header { padding: 48px 20px 20px; display: flex; align-items: flex-start; gap: 14px; }
+.back-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+.back-btn svg { width: 18px; height: 18px; color: var(--tx2); }
+.prac-title-block .module-tag { margin-bottom: 6px; }
+.prac-title { font-family: var(--font-h); font-size: 16px; font-weight: 700; color: var(--tx); }
+.prac-subtitle { font-size: 12px; color: var(--tx2); margin-top: 4px; }
+
+/* CHAT */
+.chat-area { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
+.msg { max-width: 85%; animation: fadeUp 0.3s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.msg.ai { align-self: flex-start; }
+.msg.user { align-self: flex-end; }
+.msg-bubble { padding: 12px 16px; border-radius: var(--r); font-size: 14px; line-height: 1.6; }
+.msg.ai .msg-bubble { background: var(--bg3); border: 1px solid var(--border); color: var(--tx); border-bottom-left-radius: 4px; }
+.msg.user .msg-bubble { background: var(--acc3); color: var(--tx); border-bottom-right-radius: 4px; }
+.msg.system .msg-bubble { background: rgba(93,186,138,0.1); border: 1px solid rgba(93,186,138,0.2); color: var(--green); font-size: 12px; align-self: center; max-width: 90%; text-align: center; }
+.msg.system { align-self: center; max-width: 90%; }
+.typing-dots { display: flex; gap: 5px; padding: 14px 16px; }
+.typing-dots span { width: 7px; height: 7px; background: var(--tx3); border-radius: 50%; animation: blink 1.2s infinite; }
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+.chat-input-row { padding: 12px 16px; display: flex; gap: 10px; border-top: 1px solid var(--border); background: var(--bg2); flex-shrink: 0; }
+.chat-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r2); padding: 10px 14px; color: var(--tx); font-family: var(--font); font-size: 14px; resize: none; min-height: 42px; max-height: 120px; line-height: 1.4; }
+.chat-input:focus { outline: none; border-color: var(--border2); }
+.chat-input::placeholder { color: var(--tx3); }
+.send-btn { width: 42px; height: 42px; border-radius: var(--r2); background: var(--acc); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.2s; }
+.send-btn:disabled { opacity: 0.4; cursor: default; }
+.send-btn svg { width: 18px; height: 18px; color: #1a1200; }
+
+/* TASK CARD */
+.task-card { margin: 0 16px 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; }
+.task-label { font-size: 10px; font-weight: 600; color: var(--tx3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.task-text { font-size: 14px; color: var(--tx); line-height: 1.6; }
+.task-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--bg4); border: 1px solid var(--border); color: var(--tx2); }
+
+/* SQL MODULE */
+.sql-task { margin: 0 16px 16px; }
+.sql-label { font-size: 10px; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+.sql-context { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r2); padding: 14px; font-size: 13px; color: var(--tx); line-height: 1.6; margin-bottom: 10px; }
+.sql-code { background: #0d1117; border: 1px solid var(--border); border-radius: var(--r2); padding: 14px; font-family: 'Courier New', monospace; font-size: 12px; color: #e2c08d; line-height: 1.7; white-space: pre-wrap; word-break: break-all; }
+.sql-editor { width: 100%; background: #0d1117; border: 1px solid var(--border2); border-radius: var(--r2); padding: 14px; font-family: 'Courier New', monospace; font-size: 13px; color: #e2c08d; line-height: 1.7; min-height: 100px; resize: vertical; margin-bottom: 10px; }
+.sql-editor:focus { outline: none; border-color: var(--blue2); }
+.sql-editor::placeholder { color: var(--tx3); font-family: var(--font); font-size: 12px; }
+.btn-row { display: flex; gap: 8px; }
+.btn-primary { flex: 1; background: var(--acc); color: #1a1200; border: none; border-radius: var(--r2); padding: 12px; font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+.btn-primary:disabled { opacity: 0.4; cursor: default; }
+.btn-secondary { background: var(--bg3); color: var(--tx2); border: 1px solid var(--border); border-radius: var(--r2); padding: 12px 16px; font-family: var(--font); font-size: 13px; cursor: pointer; }
+.result-block { margin-top: 10px; padding: 12px 14px; border-radius: var(--r2); font-size: 13px; line-height: 1.6; }
+.result-ok { background: rgba(93,186,138,0.1); border: 1px solid rgba(93,186,138,0.25); color: var(--green); }
+.result-err { background: rgba(217,107,90,0.1); border: 1px solid rgba(217,107,90,0.25); color: var(--red); }
+.level-row { display: flex; gap: 8px; padding: 0 16px 16px; overflow-x: auto; padding-bottom: 16px; }
+.level-row::-webkit-scrollbar { display: none; }
+.level-pill { flex-shrink: 0; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg3); color: var(--tx2); transition: all 0.2s; }
+.level-pill.active { background: var(--blue2); border-color: var(--blue2); color: #fff; }
+.level-pill.done { background: rgba(93,186,138,0.15); border-color: rgba(93,186,138,0.3); color: var(--green); }
+
+/* CODE REVIEW */
+.code-snippet { background: #0d1117; border: 1px solid var(--border); border-radius: var(--r2); padding: 16px; margin: 0 16px 12px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.8; color: #cdd9e5; overflow-x: auto; }
+.code-snippet .err { color: var(--red); text-decoration: wavy underline var(--red); }
+.code-snippet .warn { color: #e8c56d; }
+.bug-hunt { padding: 0 16px 12px; }
+.bug-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r2); padding: 14px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.2s; }
+.bug-item:hover { border-color: var(--border2); }
+.bug-item.selected-ok { border-color: var(--green); background: rgba(93,186,138,0.07); }
+.bug-item.selected-err { border-color: var(--red); background: rgba(217,107,90,0.07); }
+.bug-q { font-size: 13px; color: var(--tx); margin-bottom: 4px; }
+.bug-hint { font-size: 11px; color: var(--tx3); }
+
+/* STATS SCREEN */
+.stats-screen { padding: 48px 20px 24px; }
+.stats-title { font-family: var(--font-h); font-size: 18px; font-weight: 700; margin-bottom: 24px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+.stat-card { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; }
+.stat-val { font-family: var(--font-h); font-size: 26px; font-weight: 700; color: var(--acc); }
+.stat-label { font-size: 11px; color: var(--tx3); margin-top: 4px; }
+.history-item { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r2); padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+.hist-name { font-size: 13px; color: var(--tx); }
+.hist-time { font-size: 11px; color: var(--tx3); }
+.hist-score { font-size: 12px; font-weight: 600; color: var(--green); }
+
+/* REVIEW MODULE */
+.review-context { margin: 0 16px 12px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; font-size: 13px; color: var(--tx); line-height: 1.7; }
+.review-options { padding: 0 16px 12px; }
+.review-opt { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r2); padding: 12px 14px; margin-bottom: 8px; cursor: pointer; font-size: 13px; color: var(--tx); line-height: 1.5; transition: border-color 0.2s; }
+.review-opt:hover { border-color: var(--border2); }
+.review-opt.correct { border-color: var(--green); background: rgba(93,186,138,0.07); color: var(--green); }
+.review-opt.wrong { border-color: var(--red); background: rgba(217,107,90,0.07); color: var(--red); }
+.review-explanation { margin: 0 16px 12px; background: rgba(93,186,138,0.08); border: 1px solid rgba(93,186,138,0.2); border-radius: var(--r2); padding: 14px; font-size: 13px; color: var(--tx2); line-height: 1.6; display: none; }
+
+/* TOAST */
+#toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--bg3); border: 1px solid var(--border2); color: var(--tx); font-size: 13px; padding: 10px 20px; border-radius: 100px; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 100; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* NEGOT MODULE specific */
+.scenario-card { margin: 0 16px 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--r); padding: 16px; }
+.scenario-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--bg4); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; border: 1px solid var(--border); }
+.scenario-name { font-size: 14px; font-weight: 600; color: var(--tx); }
+.scenario-role { font-size: 12px; color: var(--tx3); margin-top: 2px; }
+.scenario-goal { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--tx2); line-height: 1.5; }
+.score-row { display: flex; gap: 8px; margin-top: 10px; }
+.score-chip { flex: 1; background: var(--bg4); border-radius: var(--r2); padding: 8px; text-align: center; }
+.score-chip-val { font-family: var(--font-h); font-size: 16px; font-weight: 700; color: var(--acc); }
+.score-chip-label { font-size: 10px; color: var(--tx3); margin-top: 2px; }
+
+/* Animations */
+.screen-in { animation: screenIn 0.25s ease; }
+@keyframes screenIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.screen-out { animation: screenOut 0.2s ease forwards; }
+@keyframes screenOut { to { opacity: 0; transform: translateX(-20px); } }
+</style>
+</head>
+<body>
+<div id="update-banner" onclick="location.reload()">🔄 Обновление доступно — нажми для установки</div>
+<div id="app">
+  <div id="screen"></div>
+  <nav id="nav">
+    <button class="nav-btn active" onclick="goHome()" id="nav-home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      <span>Модули</span>
+    </button>
+    <button class="nav-btn" onclick="goPractice()" id="nav-practice">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      <span>Практика</span>
+    </button>
+    <button class="nav-btn" onclick="goStats()" id="nav-stats">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Прогресс</span>
+    </button>
+  </nav>
+</div>
+<div id="toast"></div>
+
+<script>
+const API_KEY = 'YOUR_API_KEY';
+const MODEL = 'claude-sonnet-4-20250514';
+
+function hasAPI() { return API_KEY && API_KEY !== 'YOUR_API_KEY'; }
+
+function showNoAPI() {
+  const existing = document.getElementById('no-api-modal');
+  if (existing) existing.remove();
+  const m = document.createElement('div');
+  m.id = 'no-api-modal';
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:24px;max-width:320px;width:100%">
+      <div style="font-size:28px;margin-bottom:12px">🔑</div>
+      <div style="font-family:var(--font-h);font-size:16px;font-weight:700;color:var(--tx);margin-bottom:8px">Нужен API ключ</div>
+      <div style="font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:16px">Этот модуль работает через Claude AI. Нужен ключ от Anthropic — стоит ~200₽/мес при ежедневном использовании.</div>
+      <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;margin-bottom:16px">
+        <div style="font-size:10px;color:var(--tx3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">Как получить</div>
+        <div style="font-size:12px;color:var(--tx2);line-height:1.8">1. Открой console.anthropic.com<br>2. API Keys → Create Key<br>3. Вставь в index.html строку:<br><code style="color:var(--acc);font-size:11px">const API_KEY = 'sk-ant-...'</code></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('no-api-modal').remove()" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px;color:var(--tx2);font-family:var(--font);font-size:13px;cursor:pointer">Закрыть</button>
+        <button onclick="openLink('https://console.anthropic.com')" style="flex:1;background:var(--acc);border:none;border-radius:var(--r2);padding:10px;color:#1a1200;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer">Получить ключ</button>
+      </div>
+    </div>`;
+  document.body.appendChild(m);
+  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
+}
+
+let S = JSON.parse(localStorage.getItem('tf_state') || '{}');
+S.streak = S.streak || 0;
+S.xp = S.xp || 0;
+S.history = S.history || [];
+S.sqlDone = S.sqlDone || [];
+S.reviewDone = S.reviewDone || 0;
+S.lastDate = S.lastDate || '';
+S.negotSessions = S.negotSessions || 0;
+S.cdevSessions = S.cdevSessions || 0;
+
+function save() { localStorage.setItem('tf_state', JSON.stringify(S)); }
+
+function addXP(n) {
+  S.xp += n;
+  save();
+  toast(`+${n} XP`);
+}
+
+function checkStreak() {
+  const today = new Date().toDateString();
+  if (S.lastDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (S.lastDate === yesterday) S.streak++;
+    else if (S.lastDate !== today) S.streak = 1;
+    S.lastDate = today;
+    save();
+  }
+}
+checkStreak();
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function setNav(id) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ===== HOME ===== */
+function goHome() {
+  setNav('nav-home');
+  const xpLevel = Math.floor(S.xp / 100);
+  const xpPct = (S.xp % 100);
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="home-header">
+        <div class="home-brand">Nizamov.tech</div>
+        <div class="home-title">Тренажёр<br><span>фаундера</span></div>
+        <div class="home-sub">Бизнес и технические навыки через живую практику</div>
+      </div>
+      <div class="streak-row">
+        <div class="streak-icon">🔥</div>
+        <div>
+          <div class="streak-val">${S.streak}</div>
+          <div class="streak-label">дней подряд</div>
+        </div>
+        <div class="streak-bar">
+          <div class="xp-row"><span>Уровень ${xpLevel}</span><span>${S.xp} XP</span></div>
+          <div class="xp-track"><div class="xp-fill" style="width:${xpPct}%"></div></div>
+        </div>
+      </div>
+      <div class="section-title">Бизнес</div>
+      <div class="modules-grid">
+        <div class="module-card" onclick="openNegot()">
+          <div class="module-tag tag-biz">переговоры</div>
+          <div class="module-icon">🎭</div>
+          <div class="module-name">Симулятор переговоров</div>
+          <div class="module-desc">ИИ-клиент, живой диалог, разбор</div>
+          ${S.negotSessions > 0 ? `<div class="module-badge">${S.negotSessions} сессий</div>` : ''}
+        </div>
+        <div class="module-card" onclick="openCdev()">
+          <div class="module-tag tag-biz">customer dev</div>
+          <div class="module-icon">🎤</div>
+          <div class="module-name">Дело дня: интервью</div>
+          <div class="module-desc">Учишься слушать, не продавать</div>
+          ${S.cdevSessions > 0 ? `<div class="module-badge">${S.cdevSessions} сессий</div>` : ''}
+        </div>
+        <div class="module-card" onclick="openEcon()">
+          <div class="module-tag tag-biz">экономика</div>
+          <div class="module-icon">📊</div>
+          <div class="module-name">Юнит-экономика</div>
+          <div class="module-desc">Считай LTV, CAC, окупаемость</div>
+        </div>
+        <div class="module-card" onclick="openCopy()">
+          <div class="module-tag tag-biz">копирайтинг</div>
+          <div class="module-icon">✍️</div>
+          <div class="module-name">Питч за 3 минуты</div>
+          <div class="module-desc">Пишешь, ИИ оценивает и учит</div>
+        </div>
+      </div>
+      <div class="section-title">Технические</div>
+      <div class="modules-grid">
+        <div class="module-card" onclick="openSQL()">
+          <div class="module-tag tag-tech">SQL</div>
+          <div class="module-icon">🗄️</div>
+          <div class="module-name">SQL-квесты</div>
+          <div class="module-desc">По твоим таблицам Supabase</div>
+          ${S.sqlDone.length > 0 ? `<div class="module-badge">${S.sqlDone.length}/12 пройдено</div>` : ''}
+        </div>
+        <div class="module-card" onclick="openReview()">
+          <div class="module-tag tag-tech">код</div>
+          <div class="module-icon">🔍</div>
+          <div class="module-name">Код-ревью</div>
+          <div class="module-desc">Найди баги в JS/Supabase коде</div>
+          ${S.reviewDone > 0 ? `<div class="module-badge">${S.reviewDone} решено</div>` : ''}
+        </div>
+        <div class="module-card" onclick="openArch()">
+          <div class="module-tag tag-tech">архитектура</div>
+          <div class="module-icon">🏗️</div>
+          <div class="module-name">Арх. дилеммы</div>
+          <div class="module-desc">Кейсы через твои PWA-проекты</div>
+        </div>
+        <div class="module-card" onclick="openGit()">
+          <div class="module-tag tag-tech">git</div>
+          <div class="module-icon">🌿</div>
+          <div class="module-name">Git-сценарии</div>
+          <div class="module-desc">Реальные ситуации с репо</div>
+        </div>
+      </div>
+      <div style="height:20px"></div>
+    </div>`;
+}
+
+/* ===== AI CHAT ENGINE ===== */
+async function aiChat(systemPrompt, messages, onChunk) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: messages
+    })
+  });
+  const data = await resp.json();
+  return data.content?.[0]?.text || 'Ошибка ответа';
+}
+
+function showTyping(chatArea) {
+  const d = document.createElement('div');
+  d.className = 'msg ai'; d.id = 'typing';
+  d.innerHTML = '<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  chatArea.appendChild(d);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+function removeTyping() { document.getElementById('typing')?.remove(); }
+
+function appendMsg(chatArea, role, text) {
+  const d = document.createElement('div');
+  d.className = `msg ${role}`;
+  d.innerHTML = `<div class="msg-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  chatArea.appendChild(d);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+/* ===== ПЕРЕГОВОРЫ ===== */
+const NEGOT_SCENARIOS = [
+  { name: 'Александр Прончев', role: 'Директор, парк Ракета (TRK Таганай)', emoji: '🎡', budget: '4000-8000₽/мес', pain: 'Очереди на кассе, ручной учёт гостей', system: `Ты Александр Прончев, директор развлекательного парка "Ракета" в ТРК Таганай, Челябинск. Тебе 45 лет, опытный менеджер, скептически относишься к цифровым решениям — уже был неудачный опыт с подрядчиком. Тебя реально беспокоит: очереди на кассе в выходные, ручной учёт посещаемости, нет лояльности гостей. Бюджет есть, но не хочешь снова выкинуть деньги. Отвечай коротко, как реальный директор — немного скептично, задавай встречные вопросы. Говори по-русски. Не раскрывай бюджет сразу. Начинай с фразы "Ну слушаю, что за система такая?"` },
+  { name: 'Лилия Хасанова', role: 'Владелица кофейни "Восток", Уфа', emoji: '☕', budget: '2000-3500₽/мес', pain: 'Нет повторных визитов, не знает кто постоянный клиент', system: `Ты Лилия Хасанова, владелица небольшой кофейни "Восток" в Уфе. 35 лет, сама за стойкой, 3 сотрудника. Проблема: половина клиентов приходит один раз и не возвращается. Ты не понимаешь почему. Слышала про программы лояльности но не знаешь как это работает. Немного устала от всего, нет времени разбираться в технологиях. Говори просто, по-женски, немного устало. Цена важна — муж говорит не тратить деньги на "это всё"` },
+  { name: 'Рустам Галиев', role: 'Директор автосервиса "СТО №1"', emoji: '🔧', budget: '5000-10000₽/мес', pain: 'Клиенты забывают про ТО, нет записи онлайн', system: `Ты Рустам Галиев, владелец автосервиса в Челябинске. 42 года, серьёзный мужик, ценит конкретику. Проблема: мастера постоянно отвлекаются на звонки для записи, клиенты забывают про ТО и пропадают. Есть деньги, но не терпишь воды. Хочешь понять конкретно: что получишь, за сколько, когда. Если продавец мямлит — обрываешь. Говори по-мужски, кратко. Первая фраза: "Чем занимаешься? Конкретно."` }
+];
+
+let negotHistory = [];
+let currentScenario = null;
+let negotStarted = false;
+
+function openNegot() {
+  if (!hasAPI()) { showNoAPI(); return; }
+  setNav('nav-practice');
+  const s = NEGOT_SCENARIOS[Math.floor(Math.random() * NEGOT_SCENARIOS.length)];
+  currentScenario = s;
+  negotHistory = [];
+  negotStarted = false;
+
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-biz">переговоры</div>
+          <div class="prac-title">Симулятор переговоров</div>
+          <div class="prac-subtitle">Живой диалог → разбор ошибок</div>
+        </div>
+      </div>
+      <div class="scenario-card">
+        <div class="scenario-avatar">${s.emoji}</div>
+        <div class="scenario-name">${s.name}</div>
+        <div class="scenario-role">${s.role}</div>
+        <div class="scenario-goal">
+          <strong style="color:var(--tx2)">Твоя цель:</strong> продать PWA-систему за ${s.budget}<br>
+          <strong style="color:var(--tx2)">Боль клиента:</strong> ${s.pain}
+        </div>
+        <div class="score-row">
+          <div class="score-chip"><div class="score-chip-val" id="sc-listen">—</div><div class="score-chip-label">слушание</div></div>
+          <div class="score-chip"><div class="score-chip-val" id="sc-pain">—</div><div class="score-chip-label">боль найдена</div></div>
+          <div class="score-chip"><div class="score-chip-val" id="sc-close">—</div><div class="score-chip-label">закрытие</div></div>
+        </div>
+      </div>
+      <div class="chat-area" id="chat-area"></div>
+    </div>`;
+
+  document.getElementById('screen').insertAdjacentHTML('beforeend', `
+    <div class="chat-input-row" id="input-row">
+      <textarea class="chat-input" id="chat-inp" placeholder="Твой ответ клиенту..." rows="1" onkeydown="handleKey(event,'negot')"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendNegot()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+      </button>
+    </div>`);
+
+  const chatArea = document.getElementById('chat-area');
+  appendMsg(chatArea, 'system', `Сцена началась. Ты звонишь ${s.name.split(' ')[0]} впервые. Говори первым.`);
+  setTimeout(() => {
+    appendMsg(chatArea, 'ai', s.system.match(/Первая фраза: "(.+?)"/)?.[1] || s.system.match(/Начинай с фразы "(.+?)"/)?.[1] || 'Слушаю вас.');
+    negotStarted = true;
+  }, 600);
+}
+
+async function sendNegot() {
+  if (!negotStarted) return;
+  const inp = document.getElementById('chat-inp');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = '';
+  inp.style.height = '';
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+
+  const chatArea = document.getElementById('chat-area');
+  appendMsg(chatArea, 'user', text);
+  negotHistory.push({ role: 'user', content: text });
+  showTyping(chatArea);
+
+  const reply = await aiChat(currentScenario.system + `\n\nИстория диалога выше. Отвечай как клиент, 1-3 предложения. После 6+ обменов — можешь начать склоняться к сделке если продавец хорошо выявил боли. Каждые 3 реплики добавляй в конце ответа в формате [ОЦЕНКА:слушание/10,боль/10,закрытие/10] — числа от 1 до 10 без пробелов.`, negotHistory);
+
+  removeTyping();
+  const scoreMatch = reply.match(/\[ОЦЕНКА:(\d+)\/10,(\d+)\/10,(\d+)\/10\]/);
+  let cleanReply = reply.replace(/\[ОЦЕНКА:[^\]]+\]/g, '').trim();
+
+  negotHistory.push({ role: 'assistant', content: cleanReply });
+  appendMsg(chatArea, 'ai', cleanReply);
+
+  if (scoreMatch) {
+    document.getElementById('sc-listen').textContent = scoreMatch[1]+'/10';
+    document.getElementById('sc-pain').textContent = scoreMatch[2]+'/10';
+    document.getElementById('sc-close').textContent = scoreMatch[3]+'/10';
+    const total = parseInt(scoreMatch[1]) + parseInt(scoreMatch[2]) + parseInt(scoreMatch[3]);
+    if (total >= 21) addXP(15);
+  }
+
+  if (negotHistory.length >= 12) {
+    S.negotSessions++;
+    save();
+    addXP(20);
+    appendMsg(chatArea, 'system', 'Сессия завершена! Получи разбор ошибок ⬇️');
+    const debriefBtn = document.createElement('div');
+    debriefBtn.style.cssText = 'padding:0 16px 16px';
+    debriefBtn.innerHTML = `<button class="btn-primary" onclick="getNegotDebrief()">Разбор ошибок и рекомендации</button>`;
+    document.getElementById('screen').querySelector('.screen-in').appendChild(debriefBtn);
+    btn.disabled = true;
+  } else {
+    btn.disabled = false;
+  }
+}
+
+async function getNegotDebrief() {
+  const chatArea = document.getElementById('chat-area');
+  showTyping(chatArea);
+  const transcript = negotHistory.map(m => `${m.role === 'user' ? 'Продавец' : 'Клиент'}: ${m.content}`).join('\n');
+  const debrief = await aiChat(`Ты эксперт по продажам B2B. Проанализируй переговоры фаундера-разработчика из Челябинска (Даниил, продаёт PWA-системы малому бизнесу). Дай конкретный разбор на русском: 3 сильных момента ✅, 3 ошибки ❌, 2 конкретные техники для улучшения. Краткие предложения. Без воды.`,
+    [{ role: 'user', content: `Транскрипт переговоров с ${currentScenario.name} (${currentScenario.role}):\n\n${transcript}` }]);
+  removeTyping();
+  appendMsg(chatArea, 'ai', debrief);
+  addXP(10);
+}
+
+/* ===== CUSTOMER DEV ===== */
+const CDEV_SCENARIOS = [
+  { name: 'Тимур, 38 лет', role: 'Владелец сети из 2 барбершопов, Челябинск', goal: 'Узнать реальные боли в управлении записью и персоналом', emoji: '✂️' },
+  { name: 'Наиля, 31 год', role: 'Управляющая фитнес-студией, 200 клиентов', goal: 'Выяснить как она сейчас ведёт учёт и что болит', emoji: '🏋️' },
+  { name: 'Сергей, 50 лет', role: 'Директор ветеринарной клиники, 5 врачей', goal: 'Понять проблемы с записью и картами пациентов', emoji: '🐾' }
+];
+
+let cdevHistory = [];
+let currentCdev = null;
+
+function openCdev() {
+  if (!hasAPI()) { showNoAPI(); return; }
+  setNav('nav-practice');
+  const s = CDEV_SCENARIOS[Math.floor(Math.random() * CDEV_SCENARIOS.length)];
+  currentCdev = s;
+  cdevHistory = [];
+
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-biz">customer dev</div>
+          <div class="prac-title">Дело дня: интервью</div>
+          <div class="prac-subtitle">Слушай, не продавай</div>
+        </div>
+      </div>
+      <div class="task-card">
+        <div class="task-label">Собеседник</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+          <div style="font-size:28px">${s.emoji}</div>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:var(--tx)">${s.name}</div>
+            <div style="font-size:12px;color:var(--tx3)">${s.role}</div>
+          </div>
+        </div>
+        <div class="task-label" style="margin-top:8px">Твоя задача</div>
+        <div class="task-text">${s.goal}</div>
+        <div class="task-chips">
+          <div class="chip">не продавай продукт</div>
+          <div class="chip">открытые вопросы</div>
+          <div class="chip">копай глубже</div>
+        </div>
+      </div>
+      <div class="chat-area" id="chat-area">
+        <div class="msg system"><div class="msg-bubble">Ты позвонил ${s.name.split(',')[0]} и сказал что исследуешь рынок. Начни разговор.</div></div>
+      </div>
+    </div>`;
+
+  document.getElementById('screen').insertAdjacentHTML('beforeend', `
+    <div class="chat-input-row" id="input-row">
+      <textarea class="chat-input" id="chat-inp" placeholder="Твой вопрос собеседнику..." rows="1" onkeydown="handleKey(event,'cdev')"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendCdev()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+      </button>
+    </div>`);
+}
+
+async function sendCdev() {
+  const inp = document.getElementById('chat-inp');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = '';
+  const btn = document.getElementById('send-btn');
+  btn.disabled = true;
+  const chatArea = document.getElementById('chat-area');
+  appendMsg(chatArea, 'user', text);
+  cdevHistory.push({ role: 'user', content: text });
+  showTyping(chatArea);
+
+  const sysPrompt = `Ты ${currentCdev.name}, ${currentCdev.role}. У тебя есть реальные проблемы в бизнесе но ты их не всегда формулируешь чётко. Ты занятой человек. Если интервьюер задаёт наводящие вопросы про "систему" или "автоматизацию" — насторожись, это продавец. Если спрашивает открыто про твой опыт и боли — отвечай искренне и подробно. Говори по-русски, живо, как настоящий человек. 2-3 предложения. После 8+ обменов напиши в конце [АНАЛИЗ:продавал/слушал/глубина] где каждое слово это оценка 1-5.`;
+
+  const reply = await aiChat(sysPrompt, cdevHistory);
+  removeTyping();
+  const scoreMatch = reply.match(/\[АНАЛИЗ:(\d+)\/(\d+)\/(\d+)\]/);
+  const cleanReply = reply.replace(/\[АНАЛИЗ:[^\]]+\]/g, '').trim();
+  cdevHistory.push({ role: 'assistant', content: cleanReply });
+  appendMsg(chatArea, 'ai', cleanReply);
+
+  if (cdevHistory.length >= 10) {
+    S.cdevSessions++;
+    save();
+    addXP(20);
+    appendMsg(chatArea, 'system', 'Интервью завершено. Получи разбор ⬇️');
+    const cont = document.querySelector('.screen-in') || document.getElementById('screen');
+    const db = document.createElement('div');
+    db.style.cssText = 'padding:0 16px 16px';
+    db.innerHTML = `<button class="btn-primary" onclick="getCdevDebrief()">Разбор — что узнал и как улучшить</button>`;
+    cont.appendChild(db);
+    btn.disabled = true;
+  } else {
+    btn.disabled = false;
+  }
+}
+
+async function getCdevDebrief() {
+  const chatArea = document.getElementById('chat-area');
+  showTyping(chatArea);
+  const tr = cdevHistory.map(m => `${m.role==='user'?'Интервьюер':'Респондент'}: ${m.content}`).join('\n');
+  const d = await aiChat(`Ты эксперт по Customer Development (методология Стива Бланка). Разбери интервью. Дай:\n1. Какие реальные боли удалось выявить\n2. Где интервьюер начинал продавать вместо слушать ❌\n3. Какие вопросы были сильными ✅\n4. 2 вопроса которые стоило задать но не задали\nРусский язык, конкретно, без воды.`,
+    [{ role: 'user', content: `Интервью с ${currentCdev.name}:\n\n${tr}` }]);
+  removeTyping();
+  appendMsg(chatArea, 'ai', d);
+  addXP(10);
+}
+
+/* ===== SQL КВЕСТЫ ===== */
+const SQL_TASKS = [
+  {
+    id: 'sql1', level: 'A1', title: 'Клиенты Ракеты',
+    context: 'В таблице profiles есть поля: id, name, phone, role, created_at. Роли: client, admin.',
+    question: 'Выбери все записи где role = "client", отсортируй по created_at по убыванию. Покажи только name и phone.',
+    answer_hint: 'SELECT name, phone FROM profiles WHERE role',
+    check_keywords: ['select', 'name', 'phone', 'from profiles', 'where role', 'client', 'order by created_at', 'desc'],
+    explanation: 'SELECT name, phone FROM profiles WHERE role = \'client\' ORDER BY created_at DESC\n\nВажно: ORDER BY created_at DESC — новые клиенты первыми. Без DESC будут старые.'
+  },
+  {
+    id: 'sql2', level: 'A1', title: 'Активные бронирования',
+    context: 'Таблица bookings: id, client_id, service, status, date. Статусы: pending, confirmed, cancelled.',
+    question: 'Подсчитай количество бронирований по каждому статусу.',
+    answer_hint: 'SELECT status, COUNT',
+    check_keywords: ['select', 'status', 'count', 'from bookings', 'group by'],
+    explanation: 'SELECT status, COUNT(*) as total FROM bookings GROUP BY status\n\nCOUNT(*) считает все строки в группе. GROUP BY разбивает результат по уникальным значениям status.'
+  },
+  {
+    id: 'sql3', level: 'A2', title: 'Джойн клиент + брони',
+    context: 'profiles(id, name, phone) и bookings(id, client_id, service, date).\nclient_id в bookings ссылается на profiles.id',
+    question: 'Покажи имя клиента и название сервиса для всех бронирований сегодня.',
+    answer_hint: 'SELECT p.name, b.service FROM ... JOIN ...',
+    check_keywords: ['join', 'profiles', 'bookings', 'on', 'client_id', 'name', 'service'],
+    explanation: "SELECT p.name, b.service\nFROM bookings b\nJOIN profiles p ON b.client_id = p.id\nWHERE b.date = CURRENT_DATE\n\nJOIN соединяет таблицы по ключу. Алиасы b и p сокращают запись."
+  },
+  {
+    id: 'sql4', level: 'A2', title: 'RLS политика',
+    context: 'В Supabase таблица messages. Нужно чтобы пользователь видел только свои сообщения (where user_id = auth.uid()).',
+    question: 'Напиши SQL для создания RLS политики SELECT на таблицу messages.',
+    answer_hint: 'CREATE POLICY ... ON messages FOR SELECT ...',
+    check_keywords: ['create policy', 'on messages', 'for select', 'using', 'auth.uid'],
+    explanation: "CREATE POLICY \"own_messages\" ON messages\nFOR SELECT USING (user_id = auth.uid())\n\nRLS политика фильтрует строки на уровне БД. auth.uid() возвращает ID текущего пользователя Supabase."
+  },
+  {
+    id: 'sql5', level: 'B1', title: 'Топ клиенты',
+    context: 'bookings(id, client_id, amount, status). Нужны топ-5 клиентов по сумме confirmed бронирований.',
+    question: 'Напиши запрос: id клиента, суммарный amount, только confirmed, топ-5 по убыванию суммы.',
+    answer_hint: 'SELECT client_id, SUM(amount) ... GROUP BY ... ORDER BY ... LIMIT 5',
+    check_keywords: ['select', 'client_id', 'sum', 'amount', 'from bookings', 'where', 'confirmed', 'group by', 'order by', 'limit 5'],
+    explanation: "SELECT client_id, SUM(amount) as total\nFROM bookings\nWHERE status = 'confirmed'\nGROUP BY client_id\nORDER BY total DESC\nLIMIT 5\n\nПорядок: WHERE фильтрует строки → GROUP BY группирует → ORDER BY сортирует итог → LIMIT обрезает."
+  }
+];
+
+let currentSQL = null;
+let sqlLevel = 'all';
+
+function openSQL() {
+  setNav('nav-practice');
+  renderSQLScreen();
+}
+
+function renderSQLScreen() {
+  const tasks = sqlLevel === 'all' ? SQL_TASKS : SQL_TASKS.filter(t => t.level === sqlLevel);
+  const task = tasks.find(t => !S.sqlDone.includes(t.id)) || tasks[0];
+  currentSQL = task;
+
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-tech">SQL</div>
+          <div class="prac-title">SQL-квесты</div>
+          <div class="prac-subtitle">${S.sqlDone.length}/${SQL_TASKS.length} выполнено</div>
+        </div>
+      </div>
+      <div class="level-row">
+        ${['all','A1','A2','B1'].map(l => `<div class="level-pill ${sqlLevel===l?'active':''} ${SQL_TASKS.filter(t=>t.level===l && S.sqlDone.includes(t.id)).length === SQL_TASKS.filter(t=>t.level===l).length && l!=='all' ? 'done':''}" onclick="sqlLevel='${l}';renderSQLScreen()">${l==='all'?'Все':l}</div>`).join('')}
+      </div>
+      <div class="sql-task">
+        <div class="sql-label">Задача ${SQL_TASKS.indexOf(task)+1}/${SQL_TASKS.length} — ${task.title} <span style="color:var(--acc2)">[${task.level}]</span></div>
+        <div class="sql-context">${task.context}</div>
+        <div class="task-label" style="margin:10px 0 6px;padding:0;font-size:10px">Задание</div>
+        <div style="font-size:13px;color:var(--tx);margin-bottom:12px;line-height:1.6">${task.question}</div>
+        <div class="task-label" style="padding:0;font-size:10px;margin-bottom:6px">Подсказка</div>
+        <div class="sql-code">${task.answer_hint}</div>
+        <div style="height:10px"></div>
+        <textarea class="sql-editor" id="sql-inp" placeholder="Напиши SQL запрос здесь..."></textarea>
+        <div class="btn-row">
+          <button class="btn-primary" onclick="checkSQL()">Проверить</button>
+          <button class="btn-secondary" onclick="showSQLHint()">Объяснение</button>
+        </div>
+        <div id="sql-result"></div>
+        <div id="sql-explain" style="display:none" class="sql-code" style="margin-top:10px"></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>`;
+}
+
+function checkSQL() {
+  const answer = document.getElementById('sql-inp').value.toLowerCase().trim();
+  if (!answer) return;
+  const task = currentSQL;
+  const hits = task.check_keywords.filter(k => answer.includes(k.toLowerCase()));
+  const score = hits.length / task.check_keywords.length;
+  const result = document.getElementById('sql-result');
+
+  if (score >= 0.8) {
+    result.className = 'result-block result-ok';
+    result.innerHTML = `✅ Верно! (совпало ${hits.length}/${task.check_keywords.length} ключевых элементов)`;
+    if (!S.sqlDone.includes(task.id)) {
+      S.sqlDone.push(task.id);
+      save();
+      addXP(25);
+    }
+    setTimeout(() => {
+      const next = SQL_TASKS.find(t => !S.sqlDone.includes(t.id));
+      if (next) {
+        currentSQL = next;
+        renderSQLScreen();
+        toast('Следующая задача!');
+      } else {
+        toast('Все задачи пройдены! 🎉');
+      }
+    }, 1500);
+  } else {
+    result.className = 'result-block result-err';
+    result.innerHTML = `❌ Не совсем. Нашёл ${hits.length}/${task.check_keywords.length} элементов. Проверь: ${task.check_keywords.filter(k=>!answer.includes(k)).slice(0,3).map(k=>`<code style="background:var(--bg4);padding:1px 5px;border-radius:3px">${k}</code>`).join(', ')}`;
+  }
+}
+
+function showSQLHint() {
+  const el = document.getElementById('sql-explain');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  el.textContent = currentSQL.explanation;
+}
+
+/* ===== КОД-РЕВЬЮ ===== */
+const REVIEW_TASKS = [
+  {
+    title: 'Утечка ключа Supabase',
+    code: `// index.html
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR...реальный ключ...';
+const client = supabase.createClient(URL, SUPABASE_KEY);
+
+// Отправляем данные клиента
+async function saveUser(phone, name) {
+  const { data } = await client
+    .from('users')
+    .insert({ phone, name, admin: true });
+}`,
+    options: [
+      { text: 'Anon ключ в открытом HTML — норм, он публичный', correct: false, explain: 'Anon ключ действительно можно оставлять в клиентском коде, НО только если настроены RLS политики. Без RLS любой может читать и писать всё.' },
+      { text: 'admin: true в insert — пользователь сам ставит себе роль', correct: true, explain: '✅ Критическая уязвимость. Клиент сам передаёт admin: true в данных. Нужно убрать это поле из клиентского кода, роль назначается только через триггер на сервере.' },
+      { text: 'Нет обработки ошибок в async функции', correct: true, explain: '✅ Важно. Если Supabase вернёт ошибку — приложение молча упадёт. Нужен try/catch или проверка error из деструктуризации.' },
+      { text: 'Функция saveUser должна быть стрелочной', correct: false, explain: 'Нет, это стиль-вопрос, не ошибка. async function и async () => {} работают одинаково.' }
+    ]
+  },
+  {
+    title: 'Service Worker — кеш не обновляется',
+    code: `// sw.js
+const CACHE = 'app-v1'; // никогда не меняем
+
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll([
+      '/', '/index.html', '/app.js'
+    ]))
+  );
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request))
+  );
+});`,
+    options: [
+      { text: "Версия кеша 'app-v1' никогда не меняется — пользователи получают старую версию", correct: true, explain: '✅ Главная проблема. При каждом деплое надо менять: app-v2, app-v3 и т.д. Иначе браузер отдаёт старый кеш.' },
+      { text: 'Cache-first стратегия — оффлайн работает, но свежий контент не приходит', correct: true, explain: '✅ Верно. Нужна Network-first для index.html: сначала сеть, при ошибке — кеш. Cache-first подходит для статики (иконки, шрифты).' },
+      { text: 'addAll должен включать manifest.json', correct: false, explain: 'Желательно, но не ошибка. Приложение будет работать и без манифеста в кеше.' },
+      { text: "Нет события 'activate' для удаления старых кешей", correct: true, explain: '✅ Важно. Без activate старые кеши копятся. Нужно: в activate удалять все ключи кроме текущей версии.' }
+    ]
+  }
+];
+
+let reviewTask = null;
+let reviewAnswers = {};
+
+function openReview() {
+  setNav('nav-practice');
+  reviewTask = REVIEW_TASKS[S.reviewDone % REVIEW_TASKS.length];
+  reviewAnswers = {};
+  renderReview();
+}
+
+function renderReview() {
+  const t = reviewTask;
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-tech">код</div>
+          <div class="prac-title">Код-ревью</div>
+          <div class="prac-subtitle">Найди проблемы в коде</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 10px;font-size:13px;font-weight:600;color:var(--tx)">${t.title}</div>
+      <pre class="code-snippet" style="margin:0 16px 12px;overflow-x:auto">${t.code}</pre>
+      <div style="padding:0 16px 8px;font-size:12px;color:var(--tx2)">Отметь все проблемы которые видишь:</div>
+      <div class="bug-hunt" id="bug-hunt">
+        ${t.options.map((o,i) => `
+          <div class="bug-item" id="bug-${i}" onclick="toggleBug(${i})">
+            <div class="bug-q">${o.text}</div>
+          </div>`).join('')}
+      </div>
+      <div style="padding:0 16px 16px">
+        <button class="btn-primary" onclick="checkReview()">Проверить</button>
+      </div>
+      <div id="review-results" style="padding:0 16px 20px;display:none"></div>
+    </div>`;
+}
+
+function toggleBug(i) {
+  reviewAnswers[i] = !reviewAnswers[i];
+  const el = document.getElementById(`bug-${i}`);
+  el.style.borderColor = reviewAnswers[i] ? 'var(--acc2)' : '';
+  el.style.background = reviewAnswers[i] ? 'rgba(196,169,110,0.08)' : '';
+}
+
+function checkReview() {
+  const t = reviewTask;
+  let correct = 0, total = t.options.filter(o => o.correct).length;
+  let html = '';
+
+  t.options.forEach((o, i) => {
+    const selected = reviewAnswers[i];
+    const el = document.getElementById(`bug-${i}`);
+    if (o.correct && selected) {
+      el.className = 'bug-item selected-ok';
+      correct++;
+      html += `<div style="margin-bottom:10px;font-size:12px;color:var(--green);line-height:1.5">✅ ${o.explain}</div>`;
+    } else if (!o.correct && selected) {
+      el.className = 'bug-item selected-err';
+      html += `<div style="margin-bottom:10px;font-size:12px;color:var(--red);line-height:1.5">❌ ${o.explain}</div>`;
+    } else if (o.correct && !selected) {
+      el.style.borderColor = 'rgba(217,107,90,0.5)';
+      html += `<div style="margin-bottom:10px;font-size:12px;color:var(--tx3);line-height:1.5">⚠️ Пропустил: ${o.explain}</div>`;
+    }
+  });
+
+  const xpEarned = correct * 10;
+  addXP(xpEarned);
+  S.reviewDone++;
+  save();
+
+  const results = document.getElementById('review-results');
+  results.style.display = 'block';
+  results.innerHTML = `
+    <div style="margin-bottom:14px;font-size:14px;font-weight:600;color:var(--tx)">Результат: ${correct}/${total} найдено (+${xpEarned} XP)</div>
+    ${html}
+    <button class="btn-primary" style="margin-top:10px" onclick="openReview()">Следующая задача</button>`;
+}
+
+/* ===== ЮНИТ ЭКОНОМИКА ===== */
+function openEcon() {
+  setNav('nav-practice');
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-biz">экономика</div>
+          <div class="prac-title">Юнит-экономика</div>
+          <div class="prac-subtitle">Считай реальные проекты</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px">
+        <div class="task-label" style="padding:0 0 10px">Проект</div>
+        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+          <button class="btn-secondary" onclick="fillEcon('raketa')" style="font-size:12px">🎡 Ракета</button>
+          <button class="btn-secondary" onclick="fillEcon('postroy')" style="font-size:12px">🏗️ ПостройДом</button>
+          <button class="btn-secondary" onclick="fillEcon('custom')" style="font-size:12px">✏️ Свой проект</button>
+        </div>
+        <div style="display:grid;gap:10px">
+          <div><div class="task-label" style="padding:0 0 5px">Ежемесячная подписка (₽)</div><input id="mrr1" type="number" placeholder="4000" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--tx);font-size:14px;font-family:var(--font)"></div>
+          <div><div class="task-label" style="padding:0 0 5px">Стоимость привлечения клиента (₽ / CAC)</div><input id="cac1" type="number" placeholder="0" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--tx);font-size:14px;font-family:var(--font)"></div>
+          <div><div class="task-label" style="padding:0 0 5px">Среднее время жизни клиента (месяцев)</div><input id="lt1" type="number" placeholder="12" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--tx);font-size:14px;font-family:var(--font)"></div>
+          <div><div class="task-label" style="padding:0 0 5px">Часов в месяц на поддержку</div><input id="hrs1" type="number" placeholder="4" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--tx);font-size:14px;font-family:var(--font)"></div>
+          <div><div class="task-label" style="padding:0 0 5px">Стоимость твоего часа (₽)</div><input id="rate1" type="number" placeholder="1000" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;color:var(--tx);font-size:14px;font-family:var(--font)"></div>
+        </div>
+        <button class="btn-primary" style="margin-top:14px" onclick="calcEcon()">Рассчитать</button>
+        <div id="econ-result" style="margin-top:16px"></div>
+      </div>
+    </div>`;
+}
+
+function fillEcon(type) {
+  if (type === 'raketa') {
+    document.getElementById('mrr1').value = 4000;
+    document.getElementById('cac1').value = 0;
+    document.getElementById('lt1').value = 18;
+    document.getElementById('hrs1').value = 3;
+    document.getElementById('rate1').value = 1000;
+  } else if (type === 'postroy') {
+    document.getElementById('mrr1').value = 3000;
+    document.getElementById('cac1').value = 0;
+    document.getElementById('lt1').value = 12;
+    document.getElementById('hrs1').value = 2;
+    document.getElementById('rate1').value = 1000;
+  }
+}
+
+function calcEcon() {
+  const mrr = parseFloat(document.getElementById('mrr1').value) || 0;
+  const cac = parseFloat(document.getElementById('cac1').value) || 0;
+  const lt = parseFloat(document.getElementById('lt1').value) || 12;
+  const hrs = parseFloat(document.getElementById('hrs1').value) || 0;
+  const rate = parseFloat(document.getElementById('rate1').value) || 1000;
+
+  const ltv = mrr * lt;
+  const supportCost = hrs * rate;
+  const margin = mrr - supportCost;
+  const ltv_cac = cac > 0 ? (ltv / cac).toFixed(1) : '∞';
+  const payback = cac > 0 ? Math.ceil(cac / margin) : 0;
+  const marginPct = mrr > 0 ? Math.round((margin / mrr) * 100) : 0;
+
+  document.getElementById('econ-result').innerHTML = `
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-val">${ltv.toLocaleString()}₽</div><div class="stat-label">LTV (жизненная ценность)</div></div>
+      <div class="stat-card"><div class="stat-val">${ltv_cac}x</div><div class="stat-label">LTV/CAC (норма ≥3)</div></div>
+      <div class="stat-card"><div class="stat-val">${margin.toLocaleString()}₽</div><div class="stat-label">Маржа в месяц</div></div>
+      <div class="stat-card"><div class="stat-val">${marginPct}%</div><div class="stat-label">% маржи (норма 60%+)</div></div>
+    </div>
+    ${payback > 0 ? `<div style="font-size:13px;color:var(--tx2);margin-top:8px">Окупаемость привлечения: <strong style="color:var(--acc)">${payback} мес.</strong></div>` : ''}
+    ${margin < 0 ? '<div style="font-size:13px;color:var(--red);margin-top:8px">⚠️ Поддержка дороже подписки — убыточный клиент!</div>' : ''}
+    ${marginPct < 50 ? '<div style="font-size:13px;color:var(--acc2);margin-top:8px">💡 Маржа ниже 60% — повысь цену или сократи поддержку</div>' : '<div style="font-size:13px;color:var(--green);margin-top:8px">✅ Хорошая маржинальность</div>'}`;
+  addXP(5);
+}
+
+/* ===== КОПИРАЙТИНГ ===== */
+const COPY_TASKS = [
+  { client: 'Директор кафе, 40 мест', pain: 'Официанты путают заказы, гости ждут долго', product: 'PWA-система QR-меню и заказы', time: 180 },
+  { client: 'Владелец парка аттракционов', pain: 'Очереди на кассе, нет повторных гостей', product: 'Система лояльности и онлайн-запись', time: 180 },
+  { client: 'Руководитель ветклиники, 3 врача', pain: 'Звонят по любому поводу, журнал записи бумажный', product: 'PWA-запись и карта питомца', time: 180 }
+];
+
+let copyTask = null;
+let copyTimer = null;
+let copyTimeLeft = 0;
+
+function openCopy() {
+  if (!hasAPI()) { showNoAPI(); return; }
+  setNav('nav-practice');
+  copyTask = COPY_TASKS[Math.floor(Math.random() * COPY_TASKS.length)];
+  copyTimeLeft = copyTask.time;
+
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="stopCopyTimer();goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-biz">копирайтинг</div>
+          <div class="prac-title">Питч за 3 минуты</div>
+          <div class="prac-subtitle" id="copy-timer">3:00</div>
+        </div>
+      </div>
+      <div class="task-card">
+        <div class="task-label">Клиент</div>
+        <div class="task-text" style="margin-bottom:8px">${copyTask.client}</div>
+        <div class="task-label">Его боль</div>
+        <div class="task-text" style="margin-bottom:8px">${copyTask.pain}</div>
+        <div class="task-label">Твой продукт</div>
+        <div class="task-text">${copyTask.product}</div>
+        <div class="task-chips">
+          <div class="chip">боль → усиление → решение → результат</div>
+        </div>
+      </div>
+      <div style="padding:0 16px 16px">
+        <textarea id="copy-inp" style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:14px;color:var(--tx);font-family:var(--font);font-size:14px;line-height:1.6;min-height:180px;resize:vertical" placeholder="Напиши питч здесь..."></textarea>
+        <button class="btn-primary" style="margin-top:10px" onclick="submitCopy()">Отправить на оценку</button>
+        <div id="copy-result" style="margin-top:14px"></div>
+      </div>
+    </div>`;
+
+  copyTimer = setInterval(() => {
+    copyTimeLeft--;
+    const m = Math.floor(copyTimeLeft / 60);
+    const s = copyTimeLeft % 60;
+    const el = document.getElementById('copy-timer');
+    if (el) el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    if (copyTimeLeft <= 0) { stopCopyTimer(); submitCopy(); }
+  }, 1000);
+}
+
+function stopCopyTimer() { clearInterval(copyTimer); }
+
+async function submitCopy() {
+  stopCopyTimer();
+  const text = document.getElementById('copy-inp')?.value?.trim();
+  if (!text) return;
+  const btn = document.querySelector('#copy-result')?.previousElementSibling;
+  if (btn) btn.disabled = true;
+  const result = document.getElementById('copy-result');
+  result.innerHTML = '<div style="color:var(--tx3);font-size:13px">Анализирую питч...</div>';
+
+  const evaluation = await aiChat(`Ты эксперт по B2B-продажам в России. Оцени питч фаундера который продаёт PWA-системы малому бизнесу. Дай оценку по формуле "боль→усиление→решение→результат". Формат:\n1. Оценка 1-10\n2. Что сработало ✅ (1-2 пункта)\n3. Что упустил ❌ (1-2 пункта)\n4. Переписанная версия питча (лучший вариант, 3-5 предложений)\nКратко. По-русски.`,
+    [{ role: 'user', content: `Клиент: ${copyTask.client}\nБоль: ${copyTask.pain}\nПродукт: ${copyTask.product}\n\nПитч:\n${text}` }]);
+
+  result.innerHTML = `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-size:13px;color:var(--tx);line-height:1.7">${evaluation.replace(/\n/g,'<br>')}</div>`;
+  addXP(20);
+}
+
+/* ===== АРХИТЕКТУРА ===== */
+function openArch() {
+  setNav('nav-practice');
+  const cases = [
+    { q: 'Ты делаешь PWA для небольшого кафе. Данные меню нужно обновлять раз в неделю. Где хранить?', opts: ['localStorage в браузере', 'Supabase таблица', 'JSON файл на Vercel', 'IndexedDB'], correct: 2, explain: 'JSON файл на Vercel — оптимально. Меняешь файл → редеплой → все получают свежее меню. Supabase избыточен для статичных данных. localStorage не обновится у пользователей автоматически.' },
+    { q: 'Клиент хочет чтобы данные его конкурент не мог посмотреть. Supabase anon key открытый. Что делаешь?', opts: ['Скрываю ключ через env переменную', 'Настраиваю RLS политики в Supabase', 'Перехожу на платный план', 'Добавляю пароль на страницу'], correct: 1, explain: 'RLS (Row Level Security) — правильный ответ. Даже зная anon key, без нужных прав пользователь не увидит чужие данные. Env переменные не помогут — anon key всё равно нужен на клиенте.' },
+  ];
+  const c = cases[Math.floor(Math.random() * cases.length)];
+
+  document.getElementById('screen').innerHTML = `
+    <div class="screen-in">
+      <div class="prac-header">
+        <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+        <div class="prac-title-block">
+          <div class="module-tag tag-tech">архитектура</div>
+          <div class="prac-title">Архитектурные дилеммы</div>
+        </div>
+      </div>
+      <div class="review-context">${c.q}</div>
+      <div class="review-options">
+        ${c.opts.map((o,i) => `<div class="review-opt" id="arch-${i}" onclick="checkArch(${i},${c.correct},'${c.explain.replace(/'/g,"&#39;")}')">${o}</div>`).join('')}
+      </div>
+      <div class="review-explanation" id="arch-explain">${c.explain}</div>
+    </div>`;
+}
+
+function checkArch(i, correct, explain) {
+  document.querySelectorAll('.review-opt').forEach((el,idx) => {
+    el.onclick = null;
+    if (idx === correct) el.className = 'review-opt correct';
+    else if (idx === i && i !== correct) el.className = 'review-opt wrong';
+  });
+  const exp = document.getElementById('arch-explain');
+  exp.style.display = 'block';
+  exp.textContent = explain;
+  if (i === correct) addXP(15);
+  setTimeout(openArch, 3000);
+}
+
+/* ===== GIT ===== */
+function openGit() {
+  setNav('nav-practice');
+  const scenarios = [
+    { title: 'Сломал прод случайно', steps: ['git log --oneline', 'Найти хеш последнего рабочего коммита', 'git revert <hash>', 'git push origin main'], context: 'Ты запушил изменение и сайт упал. Пользователи видят ошибку. Что делать в правильном порядке?' },
+    { title: 'Работа над фичей без риска', steps: ['git checkout -b feature/loyalty', 'Разрабатываешь и коммитишь изменения', 'git checkout main', 'git merge feature/loyalty'], context: 'Тебе нужно добавить систему лояльности в проект, не ломая рабочую версию. Правильный порядок действий:' }
+  ];
+  const s = scenarios[Math.floor(Math.random() * scenarios.length)];
+  let order = [...s.steps].sort(() => Math.random() - 0.5);
+  let selected = [];
+
+  function render() {
+    document.getElementById('screen').innerHTML = `
+      <div class="screen-in">
+        <div class="prac-header">
+          <div class="back-btn" onclick="goHome()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="15,18 9,12 15,6"/></svg></div>
+          <div class="prac-title-block">
+            <div class="module-tag tag-tech">git</div>
+            <div class="prac-title">${s.title}</div>
+          </div>
+        </div>
+        <div class="review-context">${s.context}</div>
+        <div style="padding:0 16px">
+          <div class="task-label" style="padding:0 0 8px">Нажимай шаги в правильном порядке:</div>
+          ${order.map((step, i) => `
+            <div id="git-${i}" onclick="selectGit(${i})" style="background:var(--bg3);border:1px solid ${selected.includes(i)?'var(--acc2)':'var(--border)'};border-radius:var(--r2);padding:11px 14px;margin-bottom:8px;cursor:pointer;font-family:'Courier New',monospace;font-size:12px;color:${selected.includes(i)?'var(--acc)':'var(--tx)'};transition:all 0.2s">
+              ${selected.includes(i)?`<span style="color:var(--tx3);font-size:10px">#${selected.indexOf(i)+1} </span>`:''}${step}
+            </div>`).join('')}
+          <div id="git-result" style="margin-top:10px"></div>
+        </div>
+      </div>`;
+  }
+
+  window.selectGit = function(i) {
+    if (selected.includes(i)) return;
+    selected.push(i);
+    if (selected.length === s.steps.length) {
+      const correct = selected.every((val, idx) => order[val] === s.steps[idx]);
+      document.getElementById('git-result').innerHTML = correct
+        ? `<div class="result-block result-ok">✅ Верно! +15 XP</div>`
+        : `<div class="result-block result-err">❌ Не совсем. Правильный порядок:<br>${s.steps.map((st,i)=>`${i+1}. <code>${st}</code>`).join('<br>')}</div>`;
+      if (correct) addXP(15);
+      setTimeout(openGit, 2500);
+    } else {
+      render();
+    }
+  };
+  render();
+}
+
+/* ===== STATS ===== */
+function goStats() {
+  setNav('nav-stats');
+  const total = S.sqlDone.length * 25 + S.reviewDone * 15 + S.negotSessions * 30 + S.cdevSessions * 30;
+  document.getElementById('screen').innerHTML = `
+    <div class="stats-screen screen-in">
+      <div class="stats-title">Мой прогресс</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-val">${S.xp}</div><div class="stat-label">Всего XP</div></div>
+        <div class="stat-card"><div class="stat-val">${S.streak}🔥</div><div class="stat-label">Дней подряд</div></div>
+        <div class="stat-card"><div class="stat-val">${S.sqlDone.length}/5</div><div class="stat-label">SQL задач</div></div>
+        <div class="stat-card"><div class="stat-val">${S.reviewDone}</div><div class="stat-label">Код-ревью</div></div>
+        <div class="stat-card"><div class="stat-val">${S.negotSessions}</div><div class="stat-label">Переговоры</div></div>
+        <div class="stat-card"><div class="stat-val">${S.cdevSessions}</div><div class="stat-label">CustDev</div></div>
+      </div>
+      <div class="section-title">Как получать XP</div>
+      ${[
+        ['SQL задача', '+25 XP'],['Код-ревью', '+10-30 XP'],['Переговоры (сессия)', '+20 XP'],
+        ['Разбор переговоров', '+10 XP'],['CustDev интервью', '+20 XP'],['Питч за 3 мин', '+20 XP'],
+        ['Арх. дилемма', '+15 XP'],['Git сценарий', '+15 XP']
+      ].map(([n,x]) => `
+        <div class="history-item">
+          <div class="hist-name">${n}</div>
+          <div class="hist-score">${x}</div>
+        </div>`).join('')}
+      <div style="height:20px"></div>
+    </div>`;
+}
+
+/* UTILS */
+function goPractice() {
+  setNav('nav-practice');
+  const modules = [openNegot, openCdev, openSQL, openReview, openEcon, openCopy, openArch, openGit];
+  const last = S.history[S.history.length-1];
+  openSQL();
+}
+
+function handleKey(e, type) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (type === 'negot') sendNegot();
+    else if (type === 'cdev') sendCdev();
+  }
+  const ta = e.target;
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+}
+
+// Back button
+window.addEventListener('popstate', () => goHome());
+
+// SW
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    reg.update();
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      w.addEventListener('statechange', () => {
+        if (w.state === 'installed' && navigator.serviceWorker.controller) {
+          document.getElementById('update-banner').style.display = 'block';
+        }
+      });
+    });
+  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+}
+
+goHome();
+</script>
+</body>
+</html>
